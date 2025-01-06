@@ -114,11 +114,11 @@ void simularRANDOM(int dados[], int tamanhoDados) {
 
 int main() {
 
-    int dados[] = {1, 2, 3, 4, 1, 2, 5, 1, 6, 2, 3, 2, 7, 2, 5, 7, 1};
+    int dados[] = {1, 2, 3, 4, 1, 5, 1, 6, 2, 3, 2, 7, 5, 1};
     int tamanhoDados = sizeof(dados) / sizeof(dados[0]);
 
-    //simularFIFO(dados, tamanhoDados);
-    //simularLRU(dados, tamanhoDados);
+    simularFIFO(dados, tamanhoDados);
+    simularLRU(dados, tamanhoDados);
     simularRANDOM(dados, tamanhoDados);
 
     return 0;
