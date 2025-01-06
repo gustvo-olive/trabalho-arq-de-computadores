@@ -81,7 +81,6 @@ void simularLRU(int dados[], int tamanhoDados) {
             cache[indiceLRU].dado = dados[i];
             cache[indiceLRU].ultima_utilizacao = tempo;
         }
-        printf("Ciclo: %d\n", i + 1);
         printCache(cache, tempo, 1);
     }
 }
@@ -107,7 +106,6 @@ void simularRANDOM(int dados[], int tamanhoDados) {
             int indiceAleatorio = rand() % TAMANHO_CACHE; // Seleciona um índice aleatório para substituição
             cache[indiceAleatorio].dado = dados[i];
         }
-        printf("Ciclo: %d\n", i + 1);
         printCache(cache, 0, 0); // Passa 0 para não mostrar "Não usado há"
     }
 }
