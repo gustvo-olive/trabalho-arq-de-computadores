@@ -3,6 +3,17 @@
 #include <time.h>
 
 #define TAMANHO_CACHE 4
+/*
+Disciplina: Arquitetura de Computadores
+
+Grupo 3: Simulação de Políticas de substituição de Cache
+
+Alunos:
+Beatriz Pinheiro de Azevedo
+Gustavo de Oliveira Rego Morais
+José João Monteiro Costa
+Wesley Barbosa do Nascimento
+*/
 
 typedef struct {
     int dado;
@@ -10,7 +21,8 @@ typedef struct {
     int frequencia;        // Para LFU
 } BlocoCache;
 
-// Função para imprimir o estado da cache
+
+// Função para dar print no estado da cache
 void printCache(BlocoCache cache[], int tempoAtual, int mostrarUltimaUtilizacao, int mostrarFrequencia) {
     for (int i = 0; i < TAMANHO_CACHE; i++) {
         if (cache[i].dado != -1) {
@@ -27,8 +39,9 @@ void printCache(BlocoCache cache[], int tempoAtual, int mostrarUltimaUtilizacao,
     }
     printf("\n");
 }
+// Politicas de Substituicao:
 
-// Simulação da Politica FIFO
+// 1. Simulação da Politica FIFO
 void simularFIFO(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
@@ -53,7 +66,7 @@ void simularFIFO(int dados[], int tamanhoDados) {
     }
 }
 
-// Simulação da Politica LRU
+// 2.Simulação da Politica LRU
 void simularLRU(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
@@ -87,7 +100,7 @@ void simularLRU(int dados[], int tamanhoDados) {
     }
 }
 
-// Simulação da Politica RANDOM
+// 4. Simulação da Politica RANDOM
 void simularRANDOM(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
@@ -113,7 +126,7 @@ void simularRANDOM(int dados[], int tamanhoDados) {
     }
 }
 
-// Simulação da Politica LFU
+// 3. Simulação da Politica LFU
 void simularLFU(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
@@ -154,8 +167,10 @@ void simularLFU(int dados[], int tamanhoDados) {
     }
 }
 
+
+
 int main() {
-    int dados[] = {1, 2, 3, 4, 1, 5, 1, 6, 2, 3, 2, 7, 5, 1};
+    int dados[] = {1, 2, 3, 4, 1, 5, 1, 6, 2, 3, 7, 2};
     int tamanhoDados = sizeof(dados) / sizeof(dados[0]);
     int escolha;
 
