@@ -23,22 +23,31 @@ typedef struct {
 
 
 // Função para dar print no estado da cache
-void printCache(BlocoCache cache[], int tempoAtual, int mostrarUltimaUtilizacao, int mostrarFrequencia) {
+void printCache(BlocoCache cache[], int tempoAtual, int mostrarUltimaUtilizacao, int mostrarFrequencia, int indiceSubstituido) {
     for (int i = 0; i < TAMANHO_CACHE; i++) {
         if (cache[i].dado != -1) {
-            if (mostrarUltimaUtilizacao) {
-                printf("Cache[%d]: %d (Nao usado ha: %d)\n", i, cache[i].dado, tempoAtual - cache[i].ultima_utilizacao);
-            } else if (mostrarFrequencia) {
-                printf("Cache[%d]: %d (Frequencia: %d)\n", i, cache[i].dado, cache[i].frequencia);
+            if (i == indiceSubstituido) {
+                // Destacar em vermelho o dado substituído
+                printf("\033[31m"); // Cor vermelha
+                printf("Cache[%d]: %d ", i, cache[i].dado);
+                printf("\033[0m"); // Resetar a cor
             } else {
-                printf("Cache[%d]: %d\n", i, cache[i].dado);
+                printf("Cache[%d]: %d ", i, cache[i].dado);
             }
+
+            if (mostrarUltimaUtilizacao) {
+                printf("(Nao usado ha: %d)", tempoAtual - cache[i].ultima_utilizacao);
+            } else if (mostrarFrequencia) {
+                printf("(Frequencia: %d)", cache[i].frequencia);
+            }
+            printf("\n");
         } else {
             printf("Cache[%d]: Vazio\n", i);
         }
     }
     printf("\n");
 }
+
 // Politicas de Substituicao:
 
 // 1. Simulação da Politica FIFO
@@ -62,7 +71,15 @@ void simularFIFO(int dados[], int tamanhoDados) {
             cache[indice].dado = dados[i];
             indice = (indice + 1) % TAMANHO_CACHE; // Substitui o próximo bloco na fila
         }
-        printCache(cache, 0, 0, 0); // Passa 0 para não mostrar "Não usado há" ou "Frequencia"
+
+        int indiceSubstituido = -1; // Inicialmente, nenhum dado foi substituído
+        if (!encontrado) {
+            indiceSubstituido = indice; // Salva o índice que será substituído
+            cache[indice].dado = dados[i];
+            indice = (indice + 1) % TAMANHO_CACHE; // Atualiza o índice para FIFO
+        }
+        printf("Dado: %d\n",dados[i] );
+        printCache(cache, 0, 0, 0, indiceSubstituido); // Passa 0 para não mostrar "Não usado há" ou "Frequencia", e passa o indice que foi
     }
 }
 
@@ -80,6 +97,8 @@ void simularLRU(int dados[], int tamanhoDados) {
         tempo++;
         int encontrado = 0, indiceLRU = 0, menorTempo = tempo;
 
+        int indiceSubstituido = -1; // Inicialmente, nenhum dado foi substituído
+
         for (int j = 0; j < TAMANHO_CACHE; j++) {
             if (cache[j].dado == dados[i]) {
                 encontrado = 1;
@@ -92,15 +111,19 @@ void simularLRU(int dados[], int tamanhoDados) {
             }
         }
 
+        
         if (!encontrado) {
+            indiceSubstituido = indiceLRU; // Salva o índice do dado que será substituído
             cache[indiceLRU].dado = dados[i];
             cache[indiceLRU].ultima_utilizacao = tempo;
         }
-        printCache(cache, tempo, 1, 0); // Mostra "Não usado há" e não a frequencia
+        printf("Dado: %d\n",dados[i] );
+        printCache(cache, tempo, 1, 0, indiceSubstituido); // Mostra "Não usado há"
+        
     }
 }
 
-// 4. Simulação da Politica RANDOM
+// 3. Simulação da Politica RANDOM
 void simularRANDOM(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
@@ -112,6 +135,7 @@ void simularRANDOM(int dados[], int tamanhoDados) {
     printf("\nPolitica RANDOM:\n");
     for (int i = 0; i < tamanhoDados; i++) {
         int encontrado = 0;
+        int indiceSubstituido = -1;
         for (int j = 0; j < TAMANHO_CACHE; j++) {
             if (cache[j].dado == dados[i]) {
                 encontrado = 1;
@@ -119,14 +143,18 @@ void simularRANDOM(int dados[], int tamanhoDados) {
             }
         }
         if (!encontrado) {
-            int indiceAleatorio = rand() % TAMANHO_CACHE; // Seleciona um índice aleatório para substituição
+            int indiceAleatorio = rand() % TAMANHO_CACHE; // Seleciona um índice aleatório
+            indiceSubstituido = indiceAleatorio;         // Salva o índice substituído
             cache[indiceAleatorio].dado = dados[i];
         }
-        printCache(cache, 0, 0, 0); // Passa 0 para não mostrar "Não usado há" ou "Frequencia"
+
+        printCache(cache, 0, 0, 0, indiceSubstituido);
+        printf("Dado: %d\n",dados[i] );
+        printCache(cache, 0, 0, 0, indiceSubstituido);// Passa 0 para não mostrar "Não usado há" ou "Frequencia"
     }
 }
 
-// 3. Simulação da Politica LFU
+// 4. Simulação da Politica LFU
 void simularLFU(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
@@ -139,7 +167,8 @@ void simularLFU(int dados[], int tamanhoDados) {
         int encontrado = 0;
         int indiceLFU = 0;
         int menorFrequencia = cache[0].frequencia;
-
+        int indiceSubstituido = -1; // Inicialmente, nenhum dado foi substituído
+        
         // Verifica se o dado já está na cache
         for (int j = 0; j < TAMANHO_CACHE; j++) {
             if (cache[j].dado == dados[i]) {
@@ -151,7 +180,6 @@ void simularLFU(int dados[], int tamanhoDados) {
 
         // Se não encontrado, precisamos adicionar/substituir
         if (!encontrado) {
-            // Encontra o índice com a menor frequencia de uso
             for (int j = 0; j < TAMANHO_CACHE; j++) {
                 if (cache[j].dado == -1 || cache[j].frequencia < menorFrequencia) {
                     menorFrequencia = cache[j].frequencia;
@@ -159,19 +187,40 @@ void simularLFU(int dados[], int tamanhoDados) {
                 }
             }
 
-            // Substitui o bloco LFU ou preenche o espaco vazio
+            indiceSubstituido = indiceLFU; // Salva o índice do dado substituído
             cache[indiceLFU].dado = dados[i];
-            cache[indiceLFU].frequencia = 1; // Reseta a frequencia de uso
+            cache[indiceLFU].frequencia = 1; // Reseta a frequência
         }
-        printCache(cache, 0, 0, 1); // Não mostrar "Não usado há", mas mostrar "Frequencia"
+        printf("Dado: %d\n",dados[i] );
+        printCache(cache, 0, 0, 1, indiceSubstituido); // Mostra "Frequencia""
     }
 }
 
-
+void gerarDadosAleatorios(int dados[], int tamanho, int intervaloMin, int intervaloMax) {
+    srand(time(NULL)); // Inicializa a semente para números aleatórios
+    for (int i = 0; i < tamanho; i++) {
+        dados[i] = (rand() % (intervaloMax - intervaloMin + 1)) + intervaloMin;
+    }
+}
 
 int main() {
-    int dados[] = {1, 2, 3, 4, 1, 5, 1, 6, 2, 3, 7, 2};
-    int tamanhoDados = sizeof(dados) / sizeof(dados[0]);
+    int tamanhoDados;
+    int intervaloMin = 1, intervaloMax = 7;
+
+    printf("Digite a quantidade de dados a serem gerados: ");
+    scanf("%d", &tamanhoDados);
+
+    int dados[tamanhoDados]; // Array para armazenar os dados gerados
+
+    // Gerar dados aleatórios
+    gerarDadosAleatorios(dados, tamanhoDados, intervaloMin, intervaloMax);
+
+    printf("\nDados gerados:\n");
+    for (int i = 0; i < tamanhoDados; i++) {
+        printf("%d ", dados[i]);
+    }
+    printf("\n");
+
     int escolha;
 
     printf("\nEscolha a politica de substituicao:\n");
@@ -198,3 +247,4 @@ int main() {
 
     return 0;
 }
+
