@@ -67,10 +67,6 @@ void simularFIFO(int dados[], int tamanhoDados) {
                 break;
             }
         }
-        if (!encontrado) {
-            cache[indice].dado = dados[i];
-            indice = (indice + 1) % TAMANHO_CACHE; // Substitui o próximo bloco na fila
-        }
 
         int indiceSubstituido = -1; // Inicialmente, nenhum dado foi substituído
         if (!encontrado) {
@@ -247,4 +243,3 @@ int main() {
 
     return 0;
 }
-
