@@ -1,8 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
-#define TAMANHO_CACHE 10
+#define TAMANHO_CACHE 4
+
+/*
+Disciplina: Arquitetura de Computadores
+
+Grupo 3: Simulação de Políticas de substituição de Cache
+
+Alunos:
+Beatriz Pinheiro de Azevedo
+Gustavo de Oliveira Rego Morais
+José João Monteiro Costa
+Wesley Barbosa do Nascimento
+*/
 
 // Variáveis globais para as métricas
 int total_hits = 0;
@@ -14,18 +27,18 @@ typedef struct {
     int frequencia;        // Para LFU
 } BlocoCache;
 
-// Função para imprimir a cache
+// Função para dar print no estado da cache
 void printCache(BlocoCache cache[], int tempoAtual, int mostrarUltimaUtilizacao, int mostrarFrequencia, int indiceSubstituido) {
     for (int i = 0; i < TAMANHO_CACHE; i++) {
         if (cache[i].dado != -1) {
             if (i == indiceSubstituido) {
-                printf("\033[31m"); // Vermelho para dados substituídos
+                // Destacar em vermelho o dado substituído
+                printf("\033[31m"); // Cor vermelha
                 printf("Cache[%d]: %d ", i, cache[i].dado);
-                printf("\033[0m"); // Resetar cor
+                printf("\033[0m"); // Resetar a cor
             } else {
                 printf("Cache[%d]: %d ", i, cache[i].dado);
             }
-
             if (mostrarUltimaUtilizacao) {
                 printf("(Nao usado ha: %d)", tempoAtual - cache[i].ultima_utilizacao);
             } else if (mostrarFrequencia) {
@@ -38,6 +51,7 @@ void printCache(BlocoCache cache[], int tempoAtual, int mostrarUltimaUtilizacao,
     }
     printf("\n");
 }
+
 
 // Função para exibir métricas ao final de cada simulação
 void exibirMetricas() {
@@ -62,8 +76,9 @@ void simularFIFO(int dados[], int tamanhoDados) {
 
     int indice = 0;
     total_hits = total_misses = 0;
+    int verbose = (tamanhoDados <= 99); // Se true, imprime estado intermediário
 
-    printf("\nPolítica FIFO:\n");
+    printf("\nPolitica FIFO:\n");
     for (int i = 0; i < tamanhoDados; i++) {
         int encontrado = 0;
         for (int j = 0; j < TAMANHO_CACHE; j++) {
@@ -82,8 +97,17 @@ void simularFIFO(int dados[], int tamanhoDados) {
             indice = (indice + 1) % TAMANHO_CACHE;
         }
 
-        printf("Dado: %d\n", dados[i]);
-        printCache(cache, 0, 0, 0, indiceSubstituido);
+        // Se o modo verbose estiver ativo, imprime o estado da cache
+        if (verbose) {
+            printf("Dado: %d\n", dados[i]);
+            printCache(cache, 0, 0, 0, indiceSubstituido);
+        }
+    }
+
+    // Se não estiver em modo verbose, podemos imprimir uma mensagem final da cache, se desejado
+    if (!verbose) {
+        printf("Estado final da cache:\n");
+        printCache(cache, 0, 0, 0, -1);
     }
 
     exibirMetricas();
@@ -99,8 +123,9 @@ void simularLRU(int dados[], int tamanhoDados) {
 
     total_hits = total_misses = 0;
     int tempo = 0;
+    int verbose = (tamanhoDados <= 99);
 
-    printf("\nPolítica LRU:\n");
+    printf("\nPolitica LRU:\n");
     for (int i = 0; i < tamanhoDados; i++) {
         tempo++;
         int encontrado = 0, indiceLRU = 0, menorTempo = tempo;
@@ -126,8 +151,15 @@ void simularLRU(int dados[], int tamanhoDados) {
             cache[indiceLRU].ultima_utilizacao = tempo;
         }
 
-        printf("Dado: %d\n", dados[i]);
-        printCache(cache, tempo, 1, 0, indiceSubstituido);
+        if (verbose) {
+            printf("Dado: %d\n", dados[i]);
+            printCache(cache, tempo, 1, 0, indiceSubstituido);
+        }
+    }
+
+    if (!verbose) {
+        printf("Estado final da cache:\n");
+        printCache(cache, tempo, 1, 0, -1);
     }
 
     exibirMetricas();
@@ -142,10 +174,12 @@ void simularLFU(int dados[], int tamanhoDados) {
     }
 
     total_hits = total_misses = 0;
-    printf("\nPolítica LFU:\n");
+    int verbose = (tamanhoDados <= 99);
 
+    printf("\nPolitica LFU:\n");
     for (int i = 0; i < tamanhoDados; i++) {
-        int encontrado = 0, indiceLFU = 0, menorFrequencia = cache[0].frequencia;
+        int encontrado = 0, indiceLFU = 0;
+        int menorFrequencia = cache[0].frequencia;
         int indiceSubstituido = -1;
 
         for (int j = 0; j < TAMANHO_CACHE; j++) {
@@ -171,65 +205,118 @@ void simularLFU(int dados[], int tamanhoDados) {
             cache[indiceLFU].frequencia = 1;
         }
 
-        printf("Dado: %d\n", dados[i]);
-        printCache(cache, 0, 0, 1, indiceSubstituido);
+        if (verbose) {
+            printf("Dado: %d\n", dados[i]);
+            printCache(cache, 0, 0, 1, indiceSubstituido);
+        }
+    }
+
+    if (!verbose) {
+        printf("Estado final da cache:\n");
+        printCache(cache, 0, 0, 1, -1);
     }
 
     exibirMetricas();
 }
+
 // 4. Simulação da Política RANDOM
 void simularRANDOM(int dados[], int tamanhoDados) {
     BlocoCache cache[TAMANHO_CACHE];
     for (int i = 0; i < TAMANHO_CACHE; i++) {
-        cache[i].dado = -1; // Inicializa a cache como vazia
+        cache[i].dado = -1;
     }
 
-    srand(time(NULL)); // Inicializa o gerador de números aleatórios
-    total_hits = total_misses = 0; // Reinicia as métricas
+    srand(time(NULL));
+    total_hits = total_misses = 0;
+    int verbose = (tamanhoDados <= 99);
 
-    printf("\nPolítica RANDOM:\n");
+    printf("\nPolitica RANDOM:\n");
     for (int i = 0; i < tamanhoDados; i++) {
         int encontrado = 0, indiceSubstituido = -1;
 
-        // Verifica se o dado já está na cache
         for (int j = 0; j < TAMANHO_CACHE; j++) {
             if (cache[j].dado == dados[i]) {
                 encontrado = 1;
-                total_hits++; // Contabiliza acerto
+                total_hits++;
                 break;
             }
         }
 
-        // Se não encontrado, substitui aleatoriamente
         if (!encontrado) {
-            total_misses++; // Contabiliza falha
-            int indiceAleatorio = rand() % TAMANHO_CACHE; // Seleciona um índice aleatório
-            indiceSubstituido = indiceAleatorio;         // Salva o índice substituído
+            total_misses++;
+            int indiceAleatorio = rand() % TAMANHO_CACHE;
+            indiceSubstituido = indiceAleatorio;
             cache[indiceAleatorio].dado = dados[i];
         }
 
-        printf("Dado: %d\n", dados[i]);
-        printCache(cache, 0, 0, 0, indiceSubstituido);
+        if (verbose) {
+            printf("Dado: %d\n", dados[i]);
+            printCache(cache, 0, 0, 0, indiceSubstituido);
+        }
     }
 
-    exibirMetricas(); // Exibir métricas no final da simulação
+    if (!verbose) {
+        printf("Estado final da cache:\n");
+        printCache(cache, 0, 0, 0, -1);
+    }
+
+    exibirMetricas();
 }
+
+
+// Função para gerar dados aleatórios
 void gerarDadosAleatorios(int dados[], int tamanho, int intervaloMin, int intervaloMax) {
-    srand(time(NULL)); // Inicializa a semente para números aleatórios
+    // Note: Não chamar srand(time(NULL)) aqui se já foi chamado no main, para evitar reinicializar a semente
     for (int i = 0; i < tamanho; i++) {
         dados[i] = (rand() % (intervaloMax - intervaloMin + 1)) + intervaloMin;
     }
 }
 
+// Função auxiliar para ler um inteiro de forma segura
+int getIntInput(const char *prompt) {
+    int value;
+    char buffer[100];
+    while (1) {
+        printf("%s", prompt);
+        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+            // Remove a quebra de linha, se houver
+            buffer[strcspn(buffer, "\n")] = 0;
+            // Tenta converter para inteiro
+            if (sscanf(buffer, "%d", &value) == 1) {
+                return value;
+            } else {
+                printf("Entrada invalida. Por favor, insira um numero inteiro.\n");
+            }
+        } else {
+            printf("Erro na leitura da entrada.\n");
+            exit(1);
+        }
+    }
+}
+
 int main() {
-    int tamanhoDados;
-    int intervaloMin = 1, intervaloMax = 80;
+    int tamanhoDados, intervaloMin, intervaloMax, escolha;
 
-    printf("Digite a quantidade de dados a serem gerados: ");
-    scanf("%d", &tamanhoDados);
+    // Leitura segura da quantidade de dados
+    tamanhoDados = getIntInput("Digite a quantidade de dados a serem gerados: ");
+    
+    // Leitura segura do intervalo mínimo e máximo dos números aleatórios
+    intervaloMin = getIntInput("Digite o intervalo MINIMO dos numeros aleatorios: ");
+    intervaloMax = getIntInput("Digite o intervalo MAXIMO dos numeros aleatorios: ");
+    
+    // Valida se o intervalo minimo é menor ou igual ao maximo
+    while (intervaloMin > intervaloMax) {
+        printf("Intervalo MINIMO deve ser menor ou igual ao MAXIMO. Por favor, insira novamente.\n");
+        intervaloMin = getIntInput("Digite o intervalo MINIMO dos numeros aleatorios: ");
+        intervaloMax = getIntInput("Digite o intervalo MAXIMO dos numeros aleatorios: ");
+    }
 
-    int dados[tamanhoDados]; // Array para armazenar os dados gerados
+    // Criação do array de dados com tamanho dinâmico
+    int dados[tamanhoDados];
 
+    // Inicializa a semente para números aleatórios
+    srand(time(NULL));
+    
     // Gerar dados aleatórios
     gerarDadosAleatorios(dados, tamanhoDados, intervaloMin, intervaloMax);
 
@@ -239,13 +326,10 @@ int main() {
     }
     printf("\n");
 
-    int escolha;
+    // Leitura segura para escolha da política
+    escolha = getIntInput("\nEscolha a politica de substituicao:\n1 - FIFO\n2 - LRU\n3 - LFU\n4 - RANDOM\nDigite sua escolha: ");
 
-    printf("\nEscolha a politica de substituicao:\n");
-    printf("1 - FIFO\n2 - LRU\n3 - LFU\n4 - RANDOM\n");
-    printf("Digite sua escolha: ");
-    scanf("%d", &escolha);
-
+    // Chamada da política escolhida
     switch (escolha) {
         case 1:
             simularFIFO(dados, tamanhoDados);
@@ -260,7 +344,7 @@ int main() {
             simularRANDOM(dados, tamanhoDados);
             break;
         default:
-            printf("Escolha inválida!\n");
+            printf("Escolha invalida!\n");
     }
 
     return 0;
