@@ -1,10 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
-#define TAMANHO_CACHE 4
-
 /*
 Disciplina: Arquitetura de Computadores
 
@@ -16,6 +9,14 @@ Gustavo de Oliveira Rego Morais
 José João Monteiro Costa
 Wesley Barbosa do Nascimento
 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define TAMANHO_CACHE 4
+
 
 // Variáveis globais para as métricas
 int total_hits = 0;
@@ -266,7 +267,6 @@ void simularRANDOM(int dados[], int tamanhoDados) {
 
 // Função para gerar dados aleatórios
 void gerarDadosAleatorios(int dados[], int tamanho, int intervaloMin, int intervaloMax) {
-    // Note: Não chamar srand(time(NULL)) aqui se já foi chamado no main, para evitar reinicializar a semente
     for (int i = 0; i < tamanho; i++) {
         dados[i] = (rand() % (intervaloMax - intervaloMin + 1)) + intervaloMin;
     }
